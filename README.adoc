@@ -7,4 +7,51 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
+`love-threadpool` is an abstraction over LÖVE threads.
 
+It implements a way to distribute and synchronize operations, from the main thread to secondary threads.
+
+In this case, a thread pool is a collection of threads (or workers, a fixed amount) where each of them load the same interface to process operations.
+This interface can then be used from the main thread synchronously in a coroutine / VM thread.
+
+NOTE: Because of how LÖVE's game loop works, in contrast to an event loop, the communication between threads is implemented through a `tick` method and will commonly have a minimum latency dependent of the frame rate; Work load can be bottlenecked by that latency and CPUs will be underloaded.
+
+TIP: https://github.com/ImagicTheCat/Luaseq[Luaseq] might be of interest in conjunction with this module.
+
+See link:examples/[] (copy the module into the directory).
+
+== Install
+
+See link:src/[].
+
+== API
+
+NOTE: Coroutine resume errors are propagated using `debug.traceback`, which may result in multiple stack tracebacks.
+
+[source, lua]
+----
+-- Create a thread pool.
+-- thread_count: number of threads in the pool
+-- interface_loader: a Lua function (uses string.dump) or a string of Lua
+--   code/bytecode which returns a map of functions (called from worker threads)
+M.new(thread_count, interface_loader)
+
+-- Call an operation on the thread pool interface.
+-- The callback can be a coroutine (will call coroutine.resume with the same parameters).
+--
+-- op: key to an operation of the interface
+-- callback(ok, values_errtrace): called on operation return
+--- values_errtrace: packed return values or the error traceback
+-- ...: call arguments
+threadpool:call(op, callback, ...)
+
+-- Same as threadpool:call(), but synchronously from the current coroutine.
+-- Errors are propagated.
+threadpool.interface[op](...)
+
+-- Handle the inter-thread communications (result of operations).
+threadpool:tick()
+
+-- Close the thread pool (send exit signal and wait/join all threads).
+threadpool:close()
+----
