@@ -40,8 +40,8 @@ M.new(thread_count, interface_loader)
 -- The callback can be a coroutine (will call coroutine.resume with the same parameters).
 --
 -- op: key to an operation of the interface
--- callback(ok, values_errtrace): called on operation return
---- values_errtrace: packed return values or the error traceback
+-- callback(ok, ...): called on operation return
+--- ...: return values or the error traceback on failure
 -- ...: call arguments
 threadpool:call(op, callback, ...)
 

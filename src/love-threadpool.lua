@@ -26,18 +26,17 @@ SOFTWARE.
 
 local function pack(...) return {n = select("#", ...), ...} end
 
-local function thread_main(...)
+local function thread_main(cin, cout, interface_code)
   local unpack = unpack or table.unpack
   local function pack(...) return {n = select("#", ...), ...} end
   -- inputs
-  local cin, cout, interface_code = ...
   -- load interface
   local interface_loader, err = load(interface_code)
   assert(interface_loader, err)
   local interface = interface_loader()
   -- setup dispatch
   local function dispatch(id, op, ...)
-    cout:push({id, true, pack(interface[op](...))})
+    cout:push(pack(id, true, interface[op](...)))
   end
   local traceback
   local function error_handler(err) traceback = debug.traceback(err, 2) end
@@ -45,7 +44,7 @@ local function thread_main(...)
   local msg = cin:demand()
   while msg and msg ~= "exit" do
     local ok = xpcall(dispatch, error_handler, unpack(msg, 1, msg.n))
-    if not ok then cout:push({msg[1], false, traceback}) end
+    if not ok then cout:push(pack(msg[1], false, traceback)) end
     -- next
     msg = cin:demand()
   end
@@ -60,6 +59,10 @@ local threadpool_mt = {__index = threadpool}
 local M = {}
 
 -- Thread pool
+
+local function r_assert(ok, ...)
+  if not ok then error(..., 0) else return ... end
+end
 
 -- Create a thread pool.
 -- thread_count: number of threads in the pool
@@ -79,9 +82,7 @@ function M.new(thread_count, interface_loader)
       local co, main = coroutine.running()
       if not co or main then error("interface call from a non-coroutine thread") end
       o:call(k, co, ...)
-      local ok, values_errtrace = coroutine.yield()
-      if ok then return unpack(values_errtrace, 1, values_errtrace.n)
-      else error(values_errtrace, 0) end -- propagate error
+      return r_assert(coroutine.yield())
     end
     t[k] = handler; return handler
   end})
@@ -103,8 +104,8 @@ end
 -- The callback can be a coroutine (will call coroutine.resume with the same parameters).
 --
 -- op: key to an operation of the interface
--- callback(ok, values_errtrace): called on operation return
---- values_errtrace: packed return values or the error traceback
+-- callback(ok, ...): called on operation return
+--- ...: return values or the error traceback on failure
 -- ...: call arguments
 function threadpool:call(op, callback, ...)
   assert(not self.closed, "thread pool is closed")
@@ -122,12 +123,12 @@ end
 function threadpool:tick()
   local msg = self.cout:pop()
   while msg do
-    local id, ok, values_errtrace = msg[1], msg[2], msg[3]
+    local id = msg[1]
     local callback = self.tasks[id]
     if type(callback) == "thread" then
-      local ok, err = coroutine.resume(callback, ok, values_errtrace)
+      local ok, err = coroutine.resume(callback, unpack(msg, 2, msg.n))
       if not ok then error(debug.traceback(callback, err), 0) end
-    else callback(ok, values_errtrace) end
+    else callback(unpack(msg, 2, msg.n)) end
     -- next
     msg = self.cout:pop()
   end
