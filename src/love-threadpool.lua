@@ -104,7 +104,7 @@ end
 -- The callback can be a coroutine (will call coroutine.resume with the same parameters).
 --
 -- op: key to an operation of the interface
--- callback(ok, ...): called on operation return
+-- callback(ok, ...): called on operation return, common soft error handling interface
 --- ...: return values or the error traceback on failure
 -- ...: call arguments
 function threadpool:call(op, callback, ...)
@@ -136,6 +136,7 @@ end
 
 -- Close the thread pool (send exit signal and wait/join all threads).
 function threadpool:close()
+  if self.closed then return end
   self.closed = true
   for _, thread in ipairs(self.threads) do self.cin:push("exit") end
   for _, thread in ipairs(self.threads) do thread:wait() end

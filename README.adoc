@@ -12,7 +12,7 @@ endif::[]
 It implements a way to distribute and synchronize operations, from the main thread to secondary threads.
 
 In this case, a thread pool is a collection of threads (or workers, a fixed amount) where each of them load the same interface to process operations.
-This interface can then be used from the main thread synchronously in a coroutine / VM thread.
+This interface can then be used from the main thread synchronously inside a coroutine.
 
 NOTE: Because of how LÖVE's game loop works, in contrast to an event loop, the communication between threads is implemented through a `tick` method (polling) and will commonly have a minimum latency dependent of the frame rate; Work load can be bottlenecked by that latency and CPUs will be underloaded.
 
@@ -40,7 +40,7 @@ M.new(thread_count, interface_loader)
 -- The callback can be a coroutine (will call coroutine.resume with the same parameters).
 --
 -- op: key to an operation of the interface
--- callback(ok, ...): called on operation return
+-- callback(ok, ...): called on operation return, common soft error handling interface
 --- ...: return values or the error traceback on failure
 -- ...: call arguments
 threadpool:call(op, callback, ...)
