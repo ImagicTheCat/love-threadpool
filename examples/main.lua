@@ -5,7 +5,8 @@ local cpu_count = love.system.getProcessorCount()
 print("processor count", cpu_count)
 
 -- Create thread pool.
-local pool = threadpool.new(cpu_count, function()
+local pool = threadpool.new(cpu_count, function(n)
+  assert(n == 42) -- arg check
   require "love.math"
   --
   local interface = {}
@@ -16,7 +17,7 @@ local pool = threadpool.new(cpu_count, function()
     return rng:random()
   end
   return interface
-end)
+end, 42)
 
 -- Feed workers.
 local result

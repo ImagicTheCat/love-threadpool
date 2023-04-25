@@ -28,12 +28,13 @@ See link:src/[].
 
 NOTE: Coroutine resume errors are propagated using `debug.traceback`, which may result in multiple stack tracebacks.
 
-=== M.new(thread_count, interface_loader)
+=== M.new(thread_count, interface_loader, ...)
 
 Create a thread pool.
 
 thread_count:: number of threads in the pool
 interface_loader:: Lua function or code, plain or bytecode, which returns a map of functions (called from worker threads)
+...:: interface loader arguments
 
 === threadpool:call(op, callback, ...)
 

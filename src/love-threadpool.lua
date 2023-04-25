@@ -22,14 +22,14 @@
 
 local function pack(...) return {n = select("#", ...), ...} end
 
-local function thread_main(cin, cout, interface_code)
+local function thread_main(cin, cout, interface_code, ...)
   local unpack = unpack or table.unpack
   local function pack(...) return {n = select("#", ...), ...} end
   -- inputs
   -- load interface
   local interface_loader, err = load(interface_code)
   assert(interface_loader, err)
-  local interface = interface_loader()
+  local interface = interface_loader(...)
   -- setup dispatch
   local function dispatch(id, op, ...)
     cout:push(pack(id, true, interface[op](...)))
@@ -64,7 +64,8 @@ end
 -- thread_count: number of threads in the pool
 -- interface_loader: a Lua function (uses string.dump) or a string of Lua
 --   code/bytecode which returns a map of functions (called from worker threads)
-function M.new(thread_count, interface_loader)
+-- ...: interface loader arguments
+function M.new(thread_count, interface_loader, ...)
   local interface_code = type(interface_loader) == "string" and
     interface_loader or string.dump(interface_loader)
   -- instantiate
@@ -91,7 +92,7 @@ function M.new(thread_count, interface_loader)
   o.cin, o.cout = love.thread.newChannel(), love.thread.newChannel()
   -- start threads
   for _, thread in ipairs(o.threads) do
-    thread:start(o.cin, o.cout, interface_code)
+    thread:start(o.cin, o.cout, interface_code, ...)
   end
   return o
 end
