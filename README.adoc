@@ -6,6 +6,8 @@ ifdef::env-github[]
 :caution-caption: :fire:
 :warning-caption: :warning:
 endif::[]
+:toc: left
+:toclevels: 5
 
 `love-threadpool` is an abstraction over LÖVE threads.
 
@@ -68,3 +70,9 @@ Handle the inter-thread communications (result of operations).
 === threadpool:close()
 
 Close the thread pool (send exit signal and wait/join all threads). Idempotent.
+
+=== threadpool.tasks
+
+Table/map of `id` => `callback`.
+
+Can be used to check if the pool is busy (waiting on tasks to return).

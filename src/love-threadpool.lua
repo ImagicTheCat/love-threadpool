@@ -124,6 +124,8 @@ function threadpool:tick()
   while msg do
     local id = msg[1]
     local callback = self.tasks[id]
+    self.tasks[id] = nil
+    -- callback
     if type(callback) == "thread" then
       local ok, err = coroutine.resume(callback, unpack(msg, 2, msg.n))
       if not ok then error(debug.traceback(callback, err), 0) end
