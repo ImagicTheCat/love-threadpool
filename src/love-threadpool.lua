@@ -44,6 +44,8 @@ local function thread_main(cin, cout, interface_code, ...)
     -- next
     msg = cin:demand()
   end
+  -- exit
+  if interface.__exit then interface.__exit() end
 end
 local thread_code = love.data.newByteData(string.dump(thread_main))
 

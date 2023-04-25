@@ -16,6 +16,7 @@ local pool = threadpool.new(cpu_count, function(n)
     for i=1,n-1 do rng:random() end
     return rng:random()
   end
+  function interface.__exit() print("interface exit") end
   return interface
 end, 42)
 

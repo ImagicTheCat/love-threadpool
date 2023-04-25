@@ -36,6 +36,8 @@ thread_count:: number of threads in the pool
 interface_loader:: Lua function or code, plain or bytecode, which returns a map of functions (called from worker threads)
 ...:: interface loader arguments
 
+If the interface has an `__exit` function, it will be called before the end of the thread, after the exit of the work loop. It can be used to clean up interface resources.
+
 === threadpool:call(op, callback, ...)
 
 Call an operation on the thread pool interface.
