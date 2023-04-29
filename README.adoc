@@ -32,6 +32,8 @@ See link:src/[].
 
 NOTE: Coroutine resume errors are propagated using `debug.traceback`, which may result in multiple stack tracebacks.
 
+CAUTION: Thread errors outside interface calls are not propagated by the module; look at https://love2d.org/wiki/love.threaderror[love.threaderror] for that purpose.
+
 === M.new(thread_count, interface_loader, ...)
 
 Create a thread pool.
